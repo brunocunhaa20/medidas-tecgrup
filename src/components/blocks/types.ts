@@ -40,16 +40,115 @@ export interface BlocoLogoTesteiraData {
     };
 }
 
+export interface BlocoForroPVCData {
+    fotos: FotoAnotada[];
+    observacoes: string;
+}
+
+export interface ItemDutoColuna {
+    dutosEletricos: boolean;
+    dutosEscoamento: boolean;
+    torneiras: boolean;
+    itensSobressalentes: boolean;
+}
+
+export interface ColunaEspecficaData {
+    id: string;
+    nome: string; // Ex: Coluna 1
+    medidasFotos: FotoAnotada[]; // alt, larg, espessura
+    itensExistentes: ItemDutoColuna;
+    observacao: string;
+    fotosAdicionais: FotoAnotada[];
+}
+
+export interface BlocoColunasData {
+    quantidade: number;
+    colunas: ColunaEspecficaData[];
+    condicaoAtualDescricao: string;
+    oQueSeraFeito: {
+        revestimento: boolean;
+        pintura: boolean;
+        adesivacao: boolean;
+    };
+}
+
+export interface SinalizadorProduto {
+    id: string;
+    nome: string; // Gasolina, Etanol, etc
+}
+
+export interface SinalizadorEspecficoData {
+    id: string;
+    nome: string;
+    condicaoAtual: string;
+    fotosCondicao: FotoAnotada[];
+    observacaoCondicao: string;
+    dimensoes: {
+        altura: string;
+        largura: string;
+        profundidade: string;
+        fotosMarcadas: FotoAnotada[];
+    };
+    tipoBomba: "simples" | "invertida";
+    blocoSuperior: SinalizadorProduto[];
+    blocoInferior: SinalizadorProduto[];
+}
+
+export interface BlocoSinalizadoresData {
+    quantidade: number;
+    sinalizadores: SinalizadorEspecficoData[];
+    oQueSeraFeito: {
+        reforma: boolean;
+        adesivacao: boolean;
+        novo: boolean;
+    };
+}
+
+export interface CapaBombaEspecficaData {
+    id: string;
+    nome: string;
+    fotosMedidas: FotoAnotada[];
+    fotosAdesivos: FotoAnotada[];
+    observacoes: string;
+}
+
+export interface BlocoCapasBombaData {
+    quantidadeBombas: number;
+    capas: CapaBombaEspecficaData[];
+}
+
+export interface IlhaEspecficaData {
+    id: string;
+    nome: string;
+    fotosMedidas: FotoAnotada[];
+    observacoes: string;
+}
+
+export interface BlocoIlhaData {
+    ilhas: IlhaEspecficaData[];
+}
+
+export interface BlocoTotemData {
+    possui: boolean;
+    condicaoAtual: {
+        eletrica: string;
+        pintura: string;
+        baseSolo: string;
+    };
+    fotosMedidas: FotoAnotada[];
+    oQueSeraFeito: string;
+}
+
 // O estado global do formulário que salva no JSON JSON 'annotations'
 export interface MeasurementFormData {
     testeira: BlocoTesteiraData;
     logoTesteira: BlocoLogoTesteiraData;
-    forroPVC?: any;
-    colunas?: any;
-    sinalizadores?: any;
-    capasBomba?: any;
-    ilha?: any;
-    totemCorp?: any;
-    totemANP?: any;
-    galhardete?: any;
+    forroPVC: BlocoForroPVCData;
+    colunas: BlocoColunasData;
+    sinalizadores: BlocoSinalizadoresData;
+    capasBomba: BlocoCapasBombaData;
+    ilha: BlocoIlhaData;
+    totemCorp: BlocoTotemData;
+    totemANP: BlocoTotemData;
+    galhardete: BlocoTotemData;
 }

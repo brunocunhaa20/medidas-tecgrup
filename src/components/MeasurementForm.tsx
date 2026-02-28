@@ -14,6 +14,12 @@ import type { Json } from "@/integrations/supabase/types";
 import { MeasurementFormData } from "./blocks/types";
 import { BlockTesteira } from "./blocks/BlockTesteira";
 import { BlockLogoTesteira } from "./blocks/BlockLogoTesteira";
+import { BlockForroPVC } from "./blocks/BlockForroPVC";
+import { BlockColunas } from "./blocks/BlockColunas";
+import { BlockSinalizadores } from "./blocks/BlockSinalizadores";
+import { BlockCapasBomba } from "./blocks/BlockCapasBomba";
+import { BlockIlha } from "./blocks/BlockIlhas";
+import { BlockTotem } from "./blocks/BlockTotem";
 
 interface MeasurementFormProps {
   onSaved: () => void;
@@ -32,6 +38,14 @@ const getInitialData = (): MeasurementFormData => ({
     posicaoFotos: [],
     comoSeraFornecida: { material: "", iluminacao: "", aproveitamentoMaterial: false, aproveitamentoObservacao: "" }
   },
+  forroPVC: { fotos: [], observacoes: "" },
+  colunas: { quantidade: 0, colunas: [], condicaoAtualDescricao: "", oQueSeraFeito: { revestimento: false, pintura: false, adesivacao: false } },
+  sinalizadores: { quantidade: 0, sinalizadores: [], oQueSeraFeito: { reforma: false, adesivacao: false, novo: false } },
+  capasBomba: { quantidadeBombas: 0, capas: [] },
+  ilha: { ilhas: [] },
+  totemCorp: { possui: false, condicaoAtual: { eletrica: "", pintura: "", baseSolo: "" }, fotosMedidas: [], oQueSeraFeito: "" },
+  totemANP: { possui: false, condicaoAtual: { eletrica: "", pintura: "", baseSolo: "" }, fotosMedidas: [], oQueSeraFeito: "" },
+  galhardete: { possui: false, condicaoAtual: { eletrica: "", pintura: "", baseSolo: "" }, fotosMedidas: [], oQueSeraFeito: "" }
 });
 
 const MeasurementForm = ({ onSaved }: MeasurementFormProps) => {
@@ -150,22 +164,98 @@ const MeasurementForm = ({ onSaved }: MeasurementFormProps) => {
             </AccordionContent>
           </AccordionItem>
 
-          {/* Blocos futuros (em desenvolvimento) */}
-          <AccordionItem value="forro" className="border rounded-lg bg-card px-4 opacity-60">
+          {/* Bloco 3 - Forro PVC */}
+          <AccordionItem value="forro" className="border rounded-lg bg-card px-4">
             <AccordionTrigger className="hover:no-underline font-display font-semibold text-base py-4">
-              Bloco 3 - Forro de PVC (Em breve)
+              Bloco 3 - Forro de PVC
             </AccordionTrigger>
             <AccordionContent>
-              <p className="text-muted-foreground pt-2">Este bloco está em fase de desenvolvimento.</p>
+              <BlockForroPVC
+                data={formData.forroPVC}
+                onChange={(d) => setFormData(prev => ({ ...prev, forroPVC: d }))}
+              />
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="colunas" className="border rounded-lg bg-card px-4 opacity-60">
+          {/* Bloco 4 - Colunas */}
+          <AccordionItem value="colunas" className="border rounded-lg bg-card px-4">
             <AccordionTrigger className="hover:no-underline font-display font-semibold text-base py-4">
-              Bloco 4 - Colunas (Em breve)
+              Bloco 4 - Colunas
             </AccordionTrigger>
             <AccordionContent>
-              <p className="text-muted-foreground pt-2">Este bloco está em fase de desenvolvimento.</p>
+              <BlockColunas
+                data={formData.colunas}
+                onChange={(d) => setFormData(prev => ({ ...prev, colunas: d }))}
+              />
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Bloco 5 - Sinalizadores de Bomba */}
+          <AccordionItem value="sinalizadores" className="border rounded-lg bg-card px-4">
+            <AccordionTrigger className="hover:no-underline font-display font-semibold text-base py-4">
+              Bloco 5 - Sinalizadores de Bomba
+            </AccordionTrigger>
+            <AccordionContent>
+              <BlockSinalizadores
+                data={formData.sinalizadores}
+                onChange={(d) => setFormData(prev => ({ ...prev, sinalizadores: d }))}
+              />
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Bloco 6 - Capas de Bomba */}
+          <AccordionItem value="capas" className="border rounded-lg bg-card px-4">
+            <AccordionTrigger className="hover:no-underline font-display font-semibold text-base py-4">
+              Bloco 6 - Capas e Adesivagem de Bomba
+            </AccordionTrigger>
+            <AccordionContent>
+              <BlockCapasBomba
+                data={formData.capasBomba}
+                onChange={(d) => setFormData(prev => ({ ...prev, capasBomba: d }))}
+              />
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Bloco 7 - Ilhas de Abastecimento */}
+          <AccordionItem value="ilha" className="border rounded-lg bg-card px-4">
+            <AccordionTrigger className="hover:no-underline font-display font-semibold text-base py-4">
+              Bloco 7 - Ilhas de Abastecimento
+            </AccordionTrigger>
+            <AccordionContent>
+              <BlockIlha
+                data={formData.ilha}
+                onChange={(d) => setFormData(prev => ({ ...prev, ilha: d }))}
+              />
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Blocos 8, 9, 10 - Totens e Galhardetes */}
+          <AccordionItem value="totens" className="border rounded-lg bg-card px-4">
+            <AccordionTrigger className="hover:no-underline font-display font-semibold text-base py-4">
+              Blocos 8, 9 e 10 - Totens e Identidade Visual (Vertical)
+            </AccordionTrigger>
+            <AccordionContent className="space-y-8 divide-y divide-border/50">
+              <div className="pt-4">
+                <BlockTotem
+                  tipo="corporativo"
+                  data={formData.totemCorp}
+                  onChange={(d) => setFormData(prev => ({ ...prev, totemCorp: d }))}
+                />
+              </div>
+              <div className="pt-8 mt-4">
+                <BlockTotem
+                  tipo="anp"
+                  data={formData.totemANP}
+                  onChange={(d) => setFormData(prev => ({ ...prev, totemANP: d }))}
+                />
+              </div>
+              <div className="pt-8 mt-4">
+                <BlockTotem
+                  tipo="galhardete"
+                  data={formData.galhardete}
+                  onChange={(d) => setFormData(prev => ({ ...prev, galhardete: d }))}
+                />
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
