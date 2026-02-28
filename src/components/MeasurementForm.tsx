@@ -107,7 +107,7 @@ const MeasurementForm = ({ onSaved }: MeasurementFormProps) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-display">Identificação do Posto/Local</CardTitle>
+          <CardTitle className="text-lg font-display">Identificação do Posto / Local</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
