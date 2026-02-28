@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Ruler } from "lucide-react";
+import logoTecgrup from "@/assets/logo-tecgrup.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -34,16 +34,18 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md animate-fade-in">
-        <CardHeader className="text-center space-y-3">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
-            <Ruler className="h-7 w-7 text-primary-foreground" />
+    <div className="flex min-h-screen items-center justify-center bg-primary p-4">
+      <Card className="w-full max-w-md animate-fade-in shadow-2xl border-0">
+        <CardHeader className="text-center space-y-4 pb-2">
+          <div className="mx-auto">
+            <img src={logoTecgrup} alt="TecGrup" className="h-16 w-auto mx-auto rounded-lg" />
           </div>
-          <CardTitle className="text-2xl font-display font-bold">MedidaPro</CardTitle>
-          <CardDescription>
-            {isLogin ? "Entre na sua conta" : "Crie sua conta"}
-          </CardDescription>
+          <div>
+            <CardTitle className="text-xl font-display font-bold">Medidas TecGrup</CardTitle>
+            <CardDescription className="mt-1">
+              {isLogin ? "Entre na sua conta" : "Crie sua conta"}
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -70,7 +72,7 @@ const Auth = () => {
                 minLength={6}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={loading}>
               {loading ? "Carregando..." : isLogin ? "Entrar" : "Cadastrar"}
             </Button>
           </form>

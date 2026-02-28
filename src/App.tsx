@@ -37,7 +37,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter basename="/medidas-tecgrup">
+        <BrowserRouter>
           <AppRoutes />
         </BrowserRouter>
       </AuthProvider>
