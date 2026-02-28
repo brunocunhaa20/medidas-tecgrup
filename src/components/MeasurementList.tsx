@@ -117,38 +117,55 @@ const MeasurementList = ({ refreshKey }: MeasurementListProps) => {
 
           {expandedId === m.id && items[m.id] && (
             <CardContent className="border-t bg-muted/20 p-4 space-y-3">
-              {items[m.id].map((item, i) => (
-                <div key={item.id} className="flex items-start gap-3 p-3 rounded-lg bg-card border">
-                  <span className="flex items-center justify-center h-6 w-6 rounded bg-primary/10 text-primary text-xs font-mono font-semibold shrink-0">
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{item.name}</span>
-                      {item.value !== null && (
-                        <span className="font-mono text-sm text-primary bg-primary/10 px-2 py-0.5 rounded">
-                          {item.value} {item.unit}
-                        </span>
-                      )}
+              {items[m.id].map((item, i) => {
+                if (item.name === "Formulário Completo MedidaPro") {
+                  return (
+                    <div key={item.id} className="p-4 rounded-lg bg-card border space-y-3">
+                      <div className="flex items-center gap-2 pb-2 border-b">
+                        <span className="font-display font-semibold text-primary">Vistoria Completa</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Os dados técnicos desta medição foram salvos em formato estruturado.
+                        A visualização completa dos blocos (Testeira, Logos, etc) estará disponível no painel web.
+                      </p>
                     </div>
-                    {item.notes && <p className="text-sm text-muted-foreground">{item.notes}</p>}
-                    {item.image_url && (
-                      <div className="relative">
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          className="w-full max-w-sm h-32 object-contain rounded border bg-muted/30"
-                        />
-                        {item.annotations && Array.isArray(item.annotations) && (item.annotations as unknown as Annotation[]).length > 0 && (
-                          <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full font-mono">
-                            {(item.annotations as unknown as Annotation[]).length} marcações
+                  );
+                }
+
+                // Legacy items fallback
+                return (
+                  <div key={item.id} className="flex items-start gap-3 p-3 rounded-lg bg-card border">
+                    <span className="flex items-center justify-center h-6 w-6 rounded bg-primary/10 text-primary text-xs font-mono font-semibold shrink-0">
+                      {i + 1}
+                    </span>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{item.name}</span>
+                        {item.value !== null && (
+                          <span className="font-mono text-sm text-primary bg-primary/10 px-2 py-0.5 rounded">
+                            {item.value} {item.unit}
                           </span>
                         )}
                       </div>
-                    )}
+                      {item.notes && <p className="text-sm text-muted-foreground">{item.notes}</p>}
+                      {item.image_url && (
+                        <div className="relative">
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            className="w-full max-w-sm h-32 object-contain rounded border bg-muted/30"
+                          />
+                          {item.annotations && Array.isArray(item.annotations) && (item.annotations as unknown as Annotation[]).length > 0 && (
+                            <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full font-mono">
+                              {(item.annotations as unknown as Annotation[]).length} marcações
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           )}
         </Card>

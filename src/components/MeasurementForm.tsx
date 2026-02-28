@@ -4,56 +4,43 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Save, Loader2 } from "lucide-react";
-import MeasurementItemCard from "./MeasurementItemCard";
-import { Annotation } from "./ImageAnnotator";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Save, Loader2, FormInput } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import type { Json } from "@/integrations/supabase/types";
 
-interface MeasurementItem {
-  id: string;
-  name: string;
-  value: number | null;
-  unit: string;
-  notes: string;
-  image_url: string | null;
-  annotations: Annotation[];
-}
+import { MeasurementFormData } from "./blocks/types";
+import { BlockTesteira } from "./blocks/BlockTesteira";
+import { BlockLogoTesteira } from "./blocks/BlockLogoTesteira";
 
 interface MeasurementFormProps {
   onSaved: () => void;
 }
 
-const createEmptyItem = (): MeasurementItem => ({
-  id: crypto.randomUUID(),
-  name: "",
-  value: null,
-  unit: "cm",
-  notes: "",
-  image_url: null,
-  annotations: [],
+const getInitialData = (): MeasurementFormData => ({
+  testeira: {
+    perimetro: { fotos: [] },
+    altura: { fotos: [] },
+    observacoes: { materialAtual: "", condicaoGeral: "", iluminacao: "", acabamentos: "", estruturaInterna: "" },
+    oQueSeraFeito: { padraoProjeto3D: false, manualMarcaCliente: false, servicoEspecifico: "" },
+    aproveitamentoMaterial: { reaproveita: false, observacao: "" }
+  },
+  logoTesteira: {
+    quantidadeLogos: 0,
+    posicaoFotos: [],
+    comoSeraFornecida: { material: "", iluminacao: "", aproveitamentoMaterial: false, aproveitamentoObservacao: "" }
+  },
 });
 
 const MeasurementForm = ({ onSaved }: MeasurementFormProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [items, setItems] = useState<MeasurementItem[]>([createEmptyItem()]);
+  const [formData, setFormData] = useState<MeasurementFormData>(getInitialData());
   const [saving, setSaving] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-
-  const addItem = () => setItems((prev) => [...prev, createEmptyItem()]);
-
-  const updateItem = (index: number, updated: MeasurementItem) => {
-    setItems((prev) => prev.map((item, i) => (i === index ? updated : item)));
-  };
-
-  const deleteItem = (index: number) => {
-    if (items.length <= 1) return;
-    setItems((prev) => prev.filter((_, i) => i !== index));
-  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -72,16 +59,17 @@ const MeasurementForm = ({ onSaved }: MeasurementFormProps) => {
 
       if (mError) throw mError;
 
-      const itemsToInsert = items.map((item) => ({
+      // Salvamos toda a estrutura do formulário em um único bloco JSON para não quebrar o banco atual
+      const itemsToInsert = [{
         measurement_id: measurement.id,
         user_id: user.id,
-        name: item.name || "Sem nome",
-        value: item.value,
-        unit: item.unit,
-        notes: item.notes || null,
-        image_url: item.image_url,
-        annotations: item.annotations as unknown as Json,
-      }));
+        name: "Formulário Completo MedidaPro",
+        value: null,
+        unit: null,
+        notes: "Formulário estruturado completo",
+        image_url: null,
+        annotations: formData as unknown as Json,
+      }];
 
       const { error: iError } = await supabase
         .from("measurement_items")
@@ -89,10 +77,10 @@ const MeasurementForm = ({ onSaved }: MeasurementFormProps) => {
 
       if (iError) throw iError;
 
-      toast({ title: "Medidas salvas com sucesso!" });
+      toast({ title: "Formulário salvo com sucesso!" });
       setTitle("");
       setDescription("");
-      setItems([createEmptyItem()]);
+      setFormData(getInitialData());
       onSaved();
     } catch (err: any) {
       toast({ title: "Erro ao salvar", description: err.message, variant: "destructive" });
@@ -105,23 +93,23 @@ const MeasurementForm = ({ onSaved }: MeasurementFormProps) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-display">Informações gerais</CardTitle>
+          <CardTitle className="text-lg font-display">Identificação do Posto/Local</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Título da medição</Label>
+            <Label>Nome do Posto ou Referência</Label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Medidas do quarto principal"
+              placeholder="Ex: Auto Posto Bandeirantes"
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Descrição (opcional)</Label>
+            <Label>Detalhes (opcional)</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Detalhes adicionais..."
+              placeholder="Endereço, contato no local, etc..."
               rows={2}
               className="resize-none"
             />
@@ -130,29 +118,64 @@ const MeasurementForm = ({ onSaved }: MeasurementFormProps) => {
       </Card>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-display font-semibold">Itens de medida</h3>
-          <Button size="sm" variant="outline" onClick={addItem}>
-            <Plus className="h-4 w-4 mr-1" /> Adicionar item
-          </Button>
-        </div>
+        <h3 className="text-lg font-display font-semibold flex items-center gap-2">
+          <FormInput className="w-5 h-5 text-primary" />
+          Blocos de Marcação
+        </h3>
 
-        {items.map((item, i) => (
-          <MeasurementItemCard
-            key={item.id}
-            item={item}
-            index={i}
-            onUpdate={(updated) => updateItem(i, updated)}
-            onDelete={() => deleteItem(i)}
-          />
-        ))}
+        <Accordion type="single" collapsible className="w-full space-y-2">
+          {/* Bloco 1 - Testeira */}
+          <AccordionItem value="testeira" className="border rounded-lg bg-card px-4">
+            <AccordionTrigger className="hover:no-underline font-display font-semibold text-base py-4">
+              Bloco 1 - Testeira
+            </AccordionTrigger>
+            <AccordionContent>
+              <BlockTesteira
+                data={formData.testeira}
+                onChange={(d) => setFormData(prev => ({ ...prev, testeira: d }))}
+              />
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Bloco 2 - Logo de Testeira */}
+          <AccordionItem value="logo-testeira" className="border rounded-lg bg-card px-4">
+            <AccordionTrigger className="hover:no-underline font-display font-semibold text-base py-4">
+              Bloco 2 - Logo de Testeira
+            </AccordionTrigger>
+            <AccordionContent>
+              <BlockLogoTesteira
+                data={formData.logoTesteira}
+                onChange={(d) => setFormData(prev => ({ ...prev, logoTesteira: d }))}
+              />
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Blocos futuros (em desenvolvimento) */}
+          <AccordionItem value="forro" className="border rounded-lg bg-card px-4 opacity-60">
+            <AccordionTrigger className="hover:no-underline font-display font-semibold text-base py-4">
+              Bloco 3 - Forro de PVC (Em breve)
+            </AccordionTrigger>
+            <AccordionContent>
+              <p className="text-muted-foreground pt-2">Este bloco está em fase de desenvolvimento.</p>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="colunas" className="border rounded-lg bg-card px-4 opacity-60">
+            <AccordionTrigger className="hover:no-underline font-display font-semibold text-base py-4">
+              Bloco 4 - Colunas (Em breve)
+            </AccordionTrigger>
+            <AccordionContent>
+              <p className="text-muted-foreground pt-2">Este bloco está em fase de desenvolvimento.</p>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
 
       <Button onClick={handleSave} disabled={saving} className="w-full" size="lg">
         {saving ? (
-          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Salvando...</>
+          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Salvando Formulario...</>
         ) : (
-          <><Save className="h-4 w-4 mr-2" /> Salvar medidas</>
+          <><Save className="h-4 w-4 mr-2" /> Salvar Vistoria</>
         )}
       </Button>
     </div>
