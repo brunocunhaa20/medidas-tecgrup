@@ -4,13 +4,19 @@ export interface FotoAnotada {
     annotations: any[];
 }
 
+export interface DadosBasicosData {
+    rede: string;
+    bandeira: string;
+    nomeFantasia: string;
+    cnpj: string;
+    gerenteNome: string;
+    gerenteTelefone: string;
+    fotoPosto: FotoAnotada[];
+}
+
 export interface BlocoTesteiraData {
-    perimetro: {
-        fotos: FotoAnotada[];
-    };
-    altura: {
-        fotos: FotoAnotada[];
-    };
+    perimetro: { fotos: FotoAnotada[] };
+    altura: { fotos: FotoAnotada[] };
     observacoes: {
         materialAtual: string;
         condicaoGeral: string;
@@ -31,7 +37,7 @@ export interface BlocoTesteiraData {
 
 export interface BlocoLogoTesteiraData {
     quantidadeLogos: number;
-    posicaoFotos: FotoAnotada[]; // foto editável
+    posicaoFotos: FotoAnotada[];
     comoSeraFornecida: {
         material: string;
         iluminacao: string;
@@ -54,8 +60,8 @@ export interface ItemDutoColuna {
 
 export interface ColunaEspecficaData {
     id: string;
-    nome: string; // Ex: Coluna 1
-    medidasFotos: FotoAnotada[]; // alt, larg, espessura
+    nome: string;
+    medidasFotos: FotoAnotada[];
     itensExistentes: ItemDutoColuna;
     observacao: string;
     fotosAdicionais: FotoAnotada[];
@@ -74,7 +80,7 @@ export interface BlocoColunasData {
 
 export interface SinalizadorProduto {
     id: string;
-    nome: string; // Gasolina, Etanol, etc
+    nome: string;
 }
 
 export interface SinalizadorEspecficoData {
@@ -139,8 +145,8 @@ export interface BlocoTotemData {
     oQueSeraFeito: string;
 }
 
-// O estado global do formulário que salva no JSON JSON 'annotations'
 export interface MeasurementFormData {
+    dadosBasicos: DadosBasicosData;
     testeira: BlocoTesteiraData;
     logoTesteira: BlocoLogoTesteiraData;
     forroPVC: BlocoForroPVCData;
@@ -151,4 +157,17 @@ export interface MeasurementFormData {
     totemCorp: BlocoTotemData;
     totemANP: BlocoTotemData;
     galhardete: BlocoTotemData;
+}
+
+// Helper to check if a block has any data filled
+export function isBlockFilled(block: any): boolean {
+    if (!block) return false;
+    if (typeof block === "string") return block.trim().length > 0;
+    if (typeof block === "number") return block > 0;
+    if (typeof block === "boolean") return block;
+    if (Array.isArray(block)) return block.length > 0;
+    if (typeof block === "object") {
+        return Object.values(block).some((v) => isBlockFilled(v));
+    }
+    return false;
 }
