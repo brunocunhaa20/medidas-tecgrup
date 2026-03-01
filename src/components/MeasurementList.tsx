@@ -1,38 +1,34 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Trash2, ChevronDown, ChevronUp, Calendar, Hash } from "lucide-react";
+import { Trash2, Eye, Pencil, Calendar, Search, Building2, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { Annotation } from "./ImageAnnotator";
 import type { Json } from "@/integrations/supabase/types";
+import type { MeasurementFormData } from "./blocks/types";
 
 interface MeasurementRow {
   id: string;
   title: string;
   description: string | null;
   created_at: string;
-}
-
-interface ItemRow {
-  id: string;
-  name: string;
-  value: number | null;
-  unit: string | null;
-  notes: string | null;
-  image_url: string | null;
-  annotations: Json | null;
+  rede: string | null;
+  bandeira: string | null;
+  cnpj: string | null;
+  nome_fantasia: string | null;
+  gerente_nome: string | null;
 }
 
 interface MeasurementListProps {
   refreshKey: number;
+  onEdit: (id: string, formData: MeasurementFormData) => void;
+  onView: (id: string, formData: MeasurementFormData) => void;
 }
 
-const MeasurementList = ({ refreshKey }: MeasurementListProps) => {
+const MeasurementList = ({ refreshKey, onEdit, onView }: MeasurementListProps) => {
   const [measurements, setMeasurements] = useState<MeasurementRow[]>([]);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [items, setItems] = useState<Record<string, ItemRow[]>>({});
+  const [filter, setFilter] = useState("");
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -43,133 +39,107 @@ const MeasurementList = ({ refreshKey }: MeasurementListProps) => {
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-    if (data) setMeasurements(data);
+    if (data) setMeasurements(data as MeasurementRow[]);
   };
 
-  useEffect(() => {
-    fetchMeasurements();
-  }, [user, refreshKey]);
+  useEffect(() => { fetchMeasurements(); }, [user, refreshKey]);
 
-  const toggleExpand = async (id: string) => {
-    if (expandedId === id) {
-      setExpandedId(null);
-      return;
-    }
-    setExpandedId(id);
-    if (!items[id]) {
-      const { data } = await supabase
-        .from("measurement_items")
-        .select("*")
-        .eq("measurement_id", id);
-      if (data) setItems((prev) => ({ ...prev, [id]: data }));
-    }
+  const loadFormData = async (id: string): Promise<MeasurementFormData | null> => {
+    const { data } = await supabase.from("measurement_items").select("annotations").eq("measurement_id", id).maybeSingle();
+    if (data?.annotations) return data.annotations as unknown as MeasurementFormData;
+    return null;
+  };
+
+  const handleEdit = async (id: string) => {
+    const fd = await loadFormData(id);
+    if (fd) onEdit(id, fd);
+  };
+
+  const handleView = async (id: string) => {
+    const fd = await loadFormData(id);
+    if (fd) onView(id, fd);
   };
 
   const deleteMeasurement = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este levantamento?")) return;
+    await supabase.from("measurement_items").delete().eq("measurement_id", id);
     const { error } = await supabase.from("measurements").delete().eq("id", id);
     if (error) {
       toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
     } else {
       setMeasurements((prev) => prev.filter((m) => m.id !== id));
-      toast({ title: "Medição excluída" });
+      toast({ title: "Levantamento excluído" });
     }
   };
+
+  const filtered = measurements.filter(m => {
+    if (!filter) return true;
+    const q = filter.toLowerCase();
+    return (
+      m.title?.toLowerCase().includes(q) ||
+      m.rede?.toLowerCase().includes(q) ||
+      m.bandeira?.toLowerCase().includes(q) ||
+      m.nome_fantasia?.toLowerCase().includes(q) ||
+      m.cnpj?.includes(q)
+    );
+  });
 
   if (measurements.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        <p className="text-lg">Nenhuma medição salva ainda.</p>
-        <p className="text-sm mt-1">Crie sua primeira medição acima.</p>
+        <Building2 className="h-10 w-10 mx-auto mb-3 opacity-30" />
+        <p className="text-base">Nenhum levantamento salvo ainda.</p>
+        <p className="text-sm mt-1">Crie o primeiro levantamento acima.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      {measurements.map((m) => (
-        <Card key={m.id} className="overflow-hidden">
-          <div
-            className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-            onClick={() => toggleExpand(m.id)}
-          >
-            <div className="space-y-1">
-              <h4 className="font-display font-semibold">{m.title}</h4>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Filtrar por rede, bandeira, nome..."
+          className="pl-9"
+        />
+      </div>
+
+      <div className="space-y-2">
+        {filtered.map((m) => (
+          <div key={m.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-sm truncate">{m.nome_fantasia || m.title}</h4>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   {new Date(m.created_at).toLocaleDateString("pt-BR")}
                 </span>
-                {m.description && <span>{m.description}</span>}
+                {m.rede && <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-medium">{m.rede}</span>}
+                {m.bandeira && <span>{m.bandeira}</span>}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={(e) => { e.stopPropagation(); deleteMeasurement(m.id); }}
-                className="text-muted-foreground hover:text-destructive"
-              >
+            <div className="flex items-center gap-1 shrink-0">
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleView(m.id)} title="Visualizar">
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEdit(m.id)} title="Editar">
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => deleteMeasurement(m.id)} title="Excluir">
                 <Trash2 className="h-4 w-4" />
               </Button>
-              {expandedId === m.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </div>
           </div>
-
-          {expandedId === m.id && items[m.id] && (
-            <CardContent className="border-t bg-muted/20 p-4 space-y-3">
-              {items[m.id].map((item, i) => {
-                if (item.name === "Formulário Completo MedidaPro") {
-                  return (
-                    <div key={item.id} className="p-4 rounded-lg bg-card border space-y-3">
-                      <div className="flex items-center gap-2 pb-2 border-b">
-                        <span className="font-display font-semibold text-primary">Vistoria Completa</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Os dados técnicos desta medição foram salvos em formato estruturado.
-                        A visualização completa dos blocos (Testeira, Logos, etc) estará disponível no painel web.
-                      </p>
-                    </div>
-                  );
-                }
-
-                // Legacy items fallback
-                return (
-                  <div key={item.id} className="flex items-start gap-3 p-3 rounded-lg bg-card border">
-                    <span className="flex items-center justify-center h-6 w-6 rounded bg-primary/10 text-primary text-xs font-mono font-semibold shrink-0">
-                      {i + 1}
-                    </span>
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{item.name}</span>
-                        {item.value !== null && (
-                          <span className="font-mono text-sm text-primary bg-primary/10 px-2 py-0.5 rounded">
-                            {item.value} {item.unit}
-                          </span>
-                        )}
-                      </div>
-                      {item.notes && <p className="text-sm text-muted-foreground">{item.notes}</p>}
-                      {item.image_url && (
-                        <div className="relative">
-                          <img
-                            src={item.image_url}
-                            alt={item.name}
-                            className="w-full max-w-sm h-32 object-contain rounded border bg-muted/30"
-                          />
-                          {item.annotations && Array.isArray(item.annotations) && (item.annotations as unknown as Annotation[]).length > 0 && (
-                            <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full font-mono">
-                              {(item.annotations as unknown as Annotation[]).length} marcações
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </CardContent>
-          )}
-        </Card>
-      ))}
+        ))}
+        {filtered.length === 0 && (
+          <div className="text-center py-6 text-muted-foreground text-sm">
+            <Filter className="h-6 w-6 mx-auto mb-2 opacity-30" />
+            Nenhum resultado para "{filter}"
+          </div>
+        )}
+      </div>
     </div>
   );
 };
