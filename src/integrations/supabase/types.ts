@@ -66,25 +66,46 @@ export type Database = {
       }
       measurements: {
         Row: {
+          bandeira: string | null
+          cnpj: string | null
           created_at: string
           description: string | null
+          foto_posto: string | null
+          gerente_nome: string | null
+          gerente_telefone: string | null
           id: string
+          nome_fantasia: string | null
+          rede: string | null
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          bandeira?: string | null
+          cnpj?: string | null
           created_at?: string
           description?: string | null
+          foto_posto?: string | null
+          gerente_nome?: string | null
+          gerente_telefone?: string | null
           id?: string
+          nome_fantasia?: string | null
+          rede?: string | null
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          bandeira?: string | null
+          cnpj?: string | null
           created_at?: string
           description?: string | null
+          foto_posto?: string | null
+          gerente_nome?: string | null
+          gerente_telefone?: string | null
           id?: string
+          nome_fantasia?: string | null
+          rede?: string | null
           title?: string
           updated_at?: string
           user_id?: string
